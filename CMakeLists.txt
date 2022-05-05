@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 project(hl_event_server C CXX)
 
-SET (EXAMPLE_BINARY "ar_lab_01")
+SET (EXAMPLE_BINARY "ar_lab_02")
 
 find_package(OpenSSL)
 find_package(GTest REQUIRED)

@@ -11,6 +11,7 @@
 
 #include <sstream>
 #include <exception>
+#include <fstream>
 
 using namespace Poco::Data::Keywords;
 using Poco::Data::Session;
@@ -40,6 +41,58 @@ namespace database
                 now;
         }
 
+        catch (Poco::Data::MySQL::ConnectionException &e)
+        {
+            std::cout << "connection:" << e.what() << std::endl;
+            throw;
+        }
+        catch (Poco::Data::MySQL::StatementException &e)
+        {
+
+            std::cout << "statement:" << e.what() << std::endl;
+            throw;
+        }
+    }
+
+    void Person::preload(const std::string &file)
+    {
+        try
+        {
+
+            Poco::Data::Session session = database::Database::get().create_session();
+            std::string json;
+            std::ifstream is(file);
+            std::istream_iterator<char> eos;
+            std::istream_iterator<char> iit(is);
+            while (iit != eos)
+                json.push_back(*(iit++));
+            is.close();
+
+            Poco::JSON::Parser parser;
+            Poco::Dynamic::Var result = parser.parse(json);
+            Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
+
+            size_t i{0};
+            for (i = 0; i < arr->size(); ++i)
+            {
+                Poco::JSON::Object::Ptr object = arr->getObject(i);
+                std::string login = object->getValue<std::string>("login");
+                std::string first_name = object->getValue<std::string>("first_name");
+                std::string last_name = object->getValue<std::string>("last_name");
+                long age = object->getValue<long>("age");
+                Poco::Data::Statement insert(session);
+                insert << "INSERT INTO Person (Login,first_name,last_name,age) VALUES(?, ?, ?, ?)",
+                    Poco::Data::Keywords::use(login),
+                    Poco::Data::Keywords::use(first_name),
+                    Poco::Data::Keywords::use(last_name),
+                    Poco::Data::Keywords::use(age);
+                   
+                insert.execute();
+            }
+
+            std::cout << "Inserted " << i << " records" << std::endl;
+        }
+        
         catch (Poco::Data::MySQL::ConnectionException &e)
         {
             std::cout << "connection:" << e.what() << std::endl;

@@ -17,7 +17,8 @@ namespace database
         public:
 
             static Person fromJSON(const std::string & str);
-
+            static void preload(const std::string & str);
+            
             const std::string &get_login() const;
             const std::string &get_first_name() const;
             const std::string &get_last_name() const;
