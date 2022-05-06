@@ -110,6 +110,23 @@ public:
                 return;
             }
         }
+        else if (form.has("get_all"))
+        {
+            try
+            {
+                auto results = database::Person::read_all();
+                Poco::JSON::Array arr;
+                for (auto s : results)
+                    arr.add(s.toJSON());
+                Poco::JSON::Stringifier::stringify(arr, ostr);
+                return;
+            }
+            catch (...)
+            {
+                ostr << "{ \"result\": false , \"reason\": \"not found\" }";
+                return;
+            }
+        }
         else if (form.has("search"))
         {
             try
@@ -171,7 +188,14 @@ public:
                             {
                                 try
                                 {
+                                    /*
                                     person.save_to_mysql();
+                                    ostr << "{ \"result\": true }";
+                                    return;
+                                    */
+                                    static int i=0;
+                                    person.send_to_queue();
+                                    std::cout << "send to queue: " << std::to_string(++i)  << std::endl;
                                     ostr << "{ \"result\": true }";
                                     return;
                                 }
